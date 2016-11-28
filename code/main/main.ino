@@ -21,12 +21,19 @@ typedef struct
     int minutes;
     int hours;
 }time_t;
+typedef enum
+{
+    alarmState_inactive,
+    alarmState_active
+}alarmState_t;
 static time_t priv_currTime;
 static bool priv_cursorOn = false;
 static bool priv_time_moveCursor = false;
 const unsigned long cursor_disable_timeout = 6000; // [ms]
 // We seem to need this, otherwise cursor will flicker.
 const unsigned long cursor_update_interval = 100; // [ms]
+const int ALARM_START_TIME_HOUR = 00;
+const int ALARM_START_TIME_MIN = 00;
 
 // Display
 const int led_pin_rs = 9;
@@ -38,6 +45,12 @@ const int led_pin_d7 = 4;
 
 // The lamp itself.
 const int ledPin = 3;
+const unsigned int ledLinearity[31] = {
+    0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 
+    20, 24, 29, 34, 40, 47, 54, 63, 72, 82, 
+    92, 104, 116, 130, 145, 160, 177, 195, 214, 234, 
+    255
+};
 
 // Joystick.
 typedef enum
@@ -78,11 +91,7 @@ LiquidCrystal lcd(led_pin_rs, led_pin_en, led_pin_d4, led_pin_d5, led_pin_d6, le
 void setup()
 {
     Serial.begin(57600);
-    while (!Serial) 
-    {
-        ; // wait for serial port to connect. Needed for native USB port only
-    }
-    Serial.println("Connected, we begin!");
+    Serial.println("We begin!");
 
     // Display.
     lcd.begin(16, 2); // set up the LCD's number of columns and rows.
@@ -196,7 +205,7 @@ void decrementHours()
 * NOTE: This function only works if no param changes > 59 ticks between calls.
 *
 */
-void updateClock(time_t time)
+void updateClock(time_t &time)
 {
     if (time.seconds >= 60)
     {
@@ -206,12 +215,62 @@ void updateClock(time_t time)
     if(time.minutes >= 60)
     {
         incrementHours();
-        time.hours++;
         time.minutes = 0;
     }
     if(time.hours >= 24)
     {
         time.hours = 0;
+    }
+}
+
+/**
+ * Turns LED on and off.
+ */
+void controlLED(const time_t time)
+{ 
+    static int lastAlarmMinute = 99; // Something more than a legal minute.
+    static uint8_t alarmMinute = 0;
+    static alarmState_t alarmState = alarmState_inactive; 
+
+    switch (alarmState)
+    {
+        case alarmState_inactive:
+            if ((time.hours == ALARM_START_TIME_HOUR) &&
+                (time.minutes == ALARM_START_TIME_MIN))
+            {
+                Serial.print("Alarm started ");
+                alarmMinute = 0;
+                lastAlarmMinute = time.minutes;
+
+                alarmState = alarmState_active;
+            }
+            break;
+
+        case alarmState_active:
+        {
+            if (lastAlarmMinute != time.minutes)
+            {
+                int pwmVal_ = ledLinearity[alarmMinute];
+                analogWrite(ledPin, pwmVal_);
+
+                lastAlarmMinute = time.minutes;
+                alarmMinute++;
+
+                if ( alarmMinute > ((sizeof(ledLinearity) / sizeof(ledLinearity[0]) - 1)) )
+                {
+                    Serial.print(" alarm reset ");
+                    alarmMinute = 0;
+
+                    analogWrite(ledPin, 0);
+                    alarmState = alarmState_inactive;
+                }
+            }
+            break;
+        }
+
+        default:
+            alarmState = alarmState_inactive;
+            break;
     }
 }
 
@@ -536,6 +595,8 @@ void loop()
 
     updateClock(priv_currTime);
 
+    controlLED(priv_currTime);
+
     updateDisplay(priv_currTime);
 
     switch (priv_joySWpress)
@@ -559,16 +620,4 @@ void loop()
     }
 
     priv_joySWpress = sw_press_typeNone;
-
-    //if (clockCanBeChanged)
-    {
-        if (priv_joyReadX > 1000)
-        {
-            analogWrite(ledPin, priv_joyReadX/4 - 520);
-        }
-        else
-        {
-            analogWrite(ledPin, 0);
-        }
-    }
 }
