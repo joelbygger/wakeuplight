@@ -1,0 +1,18 @@
+From: https://learn.sparkfun.com/tutorials/pro-micro--fio-v3-hookup-guide
+
+Downloaded file: SparkFunBoard_Addons_Jan_16.zip
+
+
+Installing the Arduino Addon
+In order to use the Pro Micro or Fio v3 in your Arduino IDE, you need to add a few board definition files to it. That’s what we’ll do in this section. Begin by downloading the Pro Micro addon files.
+
+Note: These Arduino addon files only work with Arduino 1.5 and up. If you're using an earlier version of Arduino, either update (and get some cool new features), or download the older version of the Addon.
+With that downloaded, follow these steps to enable the Pro Micro in your Arduino environment:
+
+The addon files are supplied in a zip folder, so you’ll need to extract the files within first.
+Find your Arduino sketchbook folder. If you don’t know where it is, you can locate your sketchbook by looking at the preferences dialog in your Arduino IDE.
+If there isn’t already one, create a folder in your sketchbook called ‘hardware’.
+Copy the ‘sparkfun’ folder that was unzipped in the first step into the ‘hardware’ folder.
+Your directory structure should look something like “Arduino/hardware/sparkfun/avr.”
+Restart Arduino, and look under the Tools > Board menu. You should see a few new options, including ‘SparkFun Pro Micro 5V/16MHz’, ‘SparkFun Pro Micro 3.3V/8MHz’, and ‘'SparkFun Fio V3 3.3V/8MHz’.
+If the boards are visible, select the option that matches your board. If you have a Pro Micro, make sure you select the correct operating speed and voltage! Then head over to the next page where we’ll upload our first sketch!
