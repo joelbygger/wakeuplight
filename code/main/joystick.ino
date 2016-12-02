@@ -23,7 +23,7 @@ const int axis_default_value = 501; // Pretty much true, we have 2048 bits ADC.
 static int priv_joyReadX = 0;
 static int priv_joyReadY = 0;
 static volatile unsigned long priv_joySWdebounceTime_last = 0xFFFFFFF;
-static volatile unsigned long priv_lastTimeJoyMovement = 0;
+static volatile unsigned long priv_lastTimeJoyMovementTime = 0;
 static volatile joySWstates_t priv_joySWpress = sw_press_typeNone;
 
 
@@ -102,7 +102,7 @@ void joy_readAxis()
                 (priv_joyReadX >= (axis_default_value + axis_min_movement_to_count)) ||
                 (priv_joyReadX < (axis_default_value - axis_min_movement_to_count)))
             {
-                priv_lastTimeJoyMovement = millis();
+                priv_lastTimeJoyMovementTime = millis();
             }
 
             lastReadX = priv_joyReadX;
@@ -115,7 +115,7 @@ void joy_readAxis()
                 (priv_joyReadY >= (axis_default_value + axis_min_movement_to_count)) ||
                 (priv_joyReadY < (axis_default_value - axis_min_movement_to_count)))
             {
-                priv_lastTimeJoyMovement = millis();
+                priv_lastTimeJoyMovementTime = millis();
             }
 
             lastReadY = priv_joyReadY;
@@ -133,7 +133,7 @@ void joy_pressedInterrupt()
 {
     unsigned long currTime = millis();
     unsigned long timeDiff = currTime - priv_joySWdebounceTime_last;
-    priv_lastTimeJoyMovement = millis();
+    priv_lastTimeJoyMovementTime = millis();
 
     if (timeDiff < sw_press_short_delay)
     {
@@ -214,7 +214,7 @@ void joy_getPressedState(
 /**
  * Returns last time joystick was moved or pressed.
  */
-unsigned long joy_getLastTimeJoyMovement()
+unsigned long joy_getLastTimeJoyMovementTime()
 {
-	return priv_lastTimeJoyMovement;
+	return priv_lastTimeJoyMovementTime;
 }

@@ -169,11 +169,13 @@ void display_handleUserInput(
     unsigned long currTime = millis();
     static unsigned long lastTimeCheckedInput = 0;
     static bool firstExec = true;
+    static bool lastTimeCursorActive = false;
 
     if (firstExec)
     {
         lastTimeCheckedInput = millis();
         firstExec = false;
+        lastTimeCursorActive = false;
     } 
 
     cursorActive = updateCursorPos(
@@ -181,6 +183,13 @@ void display_handleUserInput(
         moveCursor,
         cursorPos,
         lastTimeJoyMovement);
+
+    if (cursorActive && !lastTimeCursorActive)
+    {
+        // We support hot-plug!
+        display_init();
+    }
+    lastTimeCursorActive = cursorActive;
 
 
     if (cursorActive &&

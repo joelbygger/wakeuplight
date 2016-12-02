@@ -12,11 +12,12 @@ Starts PWM LED (linear to the eye!) at a hard coded time. 30 minutes, then shuts
 - Arduino display, apparently it is some Toshiba thingy, identifiable by having 16 legs. Only use half of data signals (4-7).
 
 # Usage
-- One long click to enable clock adjustment mode. enter tme changing mode.
+- One long click to enable display cursor and clock adjustment mode.
 - Move cursor with short clicks
 - Change time with joystick.
 - Leave mode with long click or not touching joystick for like 6 seconds.
 - Potentioeter must be modified for text on display to be visible.
+- Display is hotplugg-ish. If removed, just activate cursor on display and it is re-initiated.
 
 # Schematics
 MCU_GND - MCU GND  

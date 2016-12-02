@@ -78,12 +78,12 @@ void loop()
 
     joy_readAxis();
     joy_getPressedState(display_cursorActive, display_moveCursor);
-    unsigned long lastMovement = joy_getLastTimeJoyMovement();
+    unsigned long lastMovementTime = joy_getLastTimeJoyMovementTime();
 
     display_handleUserInput(
         display_cursorActive, 
         display_moveCursor,
-        lastMovement);
+        lastMovementTime);
 
     clock_updateClock();
 
