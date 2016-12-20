@@ -7,8 +7,8 @@ typedef enum
     alarmState_active
 }alarmState_t;
 
-const int ALARM_START_TIME_HOUR = 06;
-const int ALARM_START_TIME_MIN = 15;
+const uint32_t ALARM_START_TIME_HOUR = 06;
+const uint32_t ALARM_START_TIME_MIN = 15;
 
 const unsigned int ledLinearity[31] = {
     0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 
@@ -24,7 +24,7 @@ const unsigned int ledLinearity[31] = {
  */
 void led_controlLED(const time_t time)
 { 
-    static int lastAlarmMinute = 99; // Something more than a legal minute.
+    static uint32_t lastAlarmMinute = 99; // Something more than a legal minute.
     static uint8_t alarmMinute = 0;
     static alarmState_t alarmState = alarmState_inactive; 
 

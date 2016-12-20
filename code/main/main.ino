@@ -5,9 +5,9 @@
 
 typedef struct
 {
-    int seconds;
-    int minutes;
-    int hours;
+    uint32_t seconds;
+    uint32_t minutes;
+    uint32_t hours;
 }time_t;
 
 // Clock.

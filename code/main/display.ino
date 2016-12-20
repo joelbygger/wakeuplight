@@ -167,15 +167,15 @@ void display_handleUserInput(
 {
     static int cursorPos = hourPosOnDisplay;
     unsigned long currTime = millis();
-    static unsigned long lastTimeCheckedInput = 0;
+    static unsigned long lastTime_modifedNumbers = 0;
     static bool firstExec = true;
-    static bool lastTimeCursorActive = false;
+    static bool lastExecCursorActive = false;
 
     if (firstExec)
     {
-        lastTimeCheckedInput = millis();
+        lastTime_modifedNumbers = millis();
         firstExec = false;
-        lastTimeCursorActive = false;
+        lastExecCursorActive = false;
     } 
 
     cursorActive = updateCursorPos(
@@ -184,16 +184,18 @@ void display_handleUserInput(
         cursorPos,
         lastTimeJoyMovement);
 
-    if (cursorActive && !lastTimeCursorActive)
+    if (cursorActive && !lastExecCursorActive)
     {
         // We support hot-plug!
         display_init();
     }
-    lastTimeCursorActive = cursorActive;
+    lastExecCursorActive = cursorActive;
 
 
+
+    // Shall we allow manual updates of display?
     if (cursorActive &&
-        ((currTime - lastTimeCheckedInput) >= joystick_axis_use_read_val_delay))
+        ((currTime - lastTime_modifedNumbers) >= joystick_axis_use_read_val_delay))
     {
         switch(cursorPos)
         {
@@ -212,6 +214,6 @@ void display_handleUserInput(
                 break;
         }
 
-        lastTimeCheckedInput = currTime;
+        lastTime_modifedNumbers = currTime;
     }
 }

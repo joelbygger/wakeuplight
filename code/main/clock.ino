@@ -47,29 +47,47 @@ void clock_interrupt()      // called by interrupt
  */
 void clock_incrementSeconds()
 {
+    // Ok to overflow, we rely on the overall update functionality to compensate
+    // and add 1 to the "more-significant-time" digit before we can increment
+    // two steps. 
     priv_currTime.seconds++;
 }
 void clock_decrementSeconds()
 {
-    priv_currTime.seconds--;
+    if (priv_currTime.seconds >= 1)
+    {
+        priv_currTime.seconds--;
+    }
 }
 
 void clock_incrementMinutes()
 {
+    // Ok to overflow, we rely on the overall update functionality to compensate
+    // and add 1 to the "more-significant-time" digit before we can increment
+    // two steps.
     priv_currTime.minutes++;
 }
 void clock_decrementMinutes()
 {
-    priv_currTime.minutes--;
+    if (priv_currTime.minutes >= 1)
+    {
+        priv_currTime.minutes--;
+    }
 }
 
 void clock_incrementHours()
 {
+    // Ok to overflow, we rely on the overall update functionality to compensate
+    // and add 1 to the "more-significant-time" digit before we can increment
+    // two steps.
     priv_currTime.hours++;
 }
 void clock_decrementHours()
 {
-    priv_currTime.hours--;
+    if (priv_currTime.hours >= 1)
+    {
+        priv_currTime.hours--;
+    }
 }
 
 /**
