@@ -7,8 +7,9 @@ typedef enum
     alarmState_active
 }alarmState_t;
 
-const int ALARM_START_TIME_HOUR = 00;
-const int ALARM_START_TIME_MIN = 00;
+const int ALARM_START_TIME_HOUR = 06;
+const int ALARM_START_TIME_MIN = 15;
+
 const unsigned int ledLinearity[31] = {
     0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 
     20, 24, 29, 34, 40, 47, 54, 63, 72, 82, 
@@ -43,14 +44,12 @@ void led_controlLED(const time_t time)
 
         case alarmState_active:
         {
-            //if (lastAlarmMinute != time.minutes)
-            if (lastAlarmMinute != time.seconds)
+            if (lastAlarmMinute != time.minutes)
             {
                 int pwmVal_ = ledLinearity[alarmMinute];
                 analogWrite(ledPin, pwmVal_);
 
-                //lastAlarmMinute = time.minutes;
-                lastAlarmMinute = time.seconds;
+                lastAlarmMinute = time.minutes;
                 alarmMinute++;
 
                 if ( alarmMinute > ((sizeof(ledLinearity) / sizeof(ledLinearity[0]) - 1)) )
