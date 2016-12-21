@@ -7,7 +7,7 @@ typedef enum
     alarmState_active
 }alarmState_t;
 
-const uint32_t ALARM_START_TIME_HOUR = 06;
+const uint32_t ALARM_START_TIME_HOUR = 6;
 const uint32_t ALARM_START_TIME_MIN = 15;
 
 const unsigned int ledLinearity[31] = {
@@ -34,8 +34,12 @@ void led_controlLED(const time_t time)
             if ((time.hours == ALARM_START_TIME_HOUR) &&
                 (time.minutes == ALARM_START_TIME_MIN))
             {
-                Serial.print("Alarm started ");
+                Serial.print("Alarm started\n");
+                Serial.print((sizeof(ledLinearity)/sizeof(ledLinearity[0])));
                 alarmMinute = 0;
+                int pwmVal_ = ledLinearity[alarmMinute];
+                analogWrite(ledPin, pwmVal_);
+                alarmMinute++;
                 lastAlarmMinute = time.minutes;
 
                 alarmState = alarmState_active;
@@ -46,15 +50,20 @@ void led_controlLED(const time_t time)
         {
             if (lastAlarmMinute != time.minutes)
             {
+                Serial.print(" new alarm minute: ");
+                Serial.print(alarmMinute);
+                Serial.print("\n");
                 int pwmVal_ = ledLinearity[alarmMinute];
+                Serial.print(pwmVal_);
+                Serial.print("\n");
                 analogWrite(ledPin, pwmVal_);
 
                 lastAlarmMinute = time.minutes;
                 alarmMinute++;
 
-                if ( alarmMinute > ((sizeof(ledLinearity) / sizeof(ledLinearity[0]) - 1)) )
+                if ( alarmMinute > ((sizeof(ledLinearity) / sizeof(ledLinearity[0]))) )
                 {
-                    Serial.print(" alarm reset ");
+                    Serial.print(" alarm reset\n");
                     alarmMinute = 0;
 
                     analogWrite(ledPin, 0);
