@@ -31,7 +31,7 @@ static volatile joySWstates_t priv_joySWpress = sw_press_typeNone;
 /**
  * Returns true if X axis reading was positive last time it was read. 
  */
-bool xAxisPos()
+bool joystick_xAxisPos()
 {
     return priv_joyReadX >= (axis_default_value + axis_min_movement_to_count) ? true : false;
 }
@@ -39,7 +39,7 @@ bool xAxisPos()
 /**
  * Returns true if X axis reading was negative last time it was read. 
  */
-bool xAxisNeg()
+bool joystick_xAxisNeg()
 {
     return priv_joyReadX < (axis_default_value - axis_min_movement_to_count) ? true : false;
 }
@@ -47,17 +47,18 @@ bool xAxisNeg()
 /**
  * Returns how the time shall be modified, add or remove 1.
  */
-void manualTimeChange(void (*increment)(), void (*decrement)())
+/*void manualTimeChange(bool (*increment)(), void (*decrement)())
 {
     if (xAxisPos())
     {
-        increment();
+        // Ignore return value here, if we overflow we don't want to affect other timings.
+        (void)increment();
     }
     else if (xAxisNeg())
     {
         decrement();
     }
-}
+}*/
 
 /**
  * Returns true if movement was so big we count is as a movement.
@@ -194,8 +195,8 @@ void joy_getPressedState(
             // Do nothing.
             break;
         case sw_press_veryLongDelay:
-            break;
         case sw_press_longDelay:
+            Serial.println("button active toggle!");
             cursorActive = !cursorActive;
             break;
         case sw_press_shortDelay:
@@ -216,5 +217,5 @@ void joy_getPressedState(
  */
 unsigned long joy_getLastTimeJoyMovementTime()
 {
-	return priv_lastTimeJoyMovementTime;
+    return priv_lastTimeJoyMovementTime;
 }

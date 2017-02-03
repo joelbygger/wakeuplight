@@ -8,7 +8,7 @@ typedef enum
 }alarmState_t;
 
 const uint32_t ALARM_START_TIME_HOUR = 6;
-const uint32_t ALARM_START_TIME_MIN = 15;
+const uint32_t ALARM_START_TIME_MIN = 0;
 
 const unsigned int ledLinearity[31] = {
     0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 
@@ -32,7 +32,8 @@ void led_controlLED(const time_t time)
     {
         case alarmState_inactive:
             if ((time.hours == ALARM_START_TIME_HOUR) &&
-                (time.minutes == ALARM_START_TIME_MIN))
+                (time.minutes == ALARM_START_TIME_MIN) &&
+                time.dayNo <= 4) // Only alarm on weekdays.
             {
                 Serial.print("Alarm started\n");
                 Serial.print((sizeof(ledLinearity)/sizeof(ledLinearity[0])));

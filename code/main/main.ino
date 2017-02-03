@@ -3,12 +3,26 @@
 // include the library code:
 #include <LiquidCrystal.h>
 
+const String weekdays[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+
+// For some reason must be declared in main.
 typedef struct
 {
     uint32_t seconds;
     uint32_t minutes;
     uint32_t hours;
+    uint8_t dayNo;
+    String dayText;
 }time_t;
+
+// For some reason must be declared in main.
+typedef enum
+{
+    hourPosOnDisplay,
+    minPosOnDisplay,
+    secPosOnDisplay,
+    dayPosOnDisplay
+}cursorPosOnDisplay_t;
 
 // Clock.
 const int gpio_PWMOutput = 10; // 16 bit PWM channel, if configured so.
@@ -80,14 +94,12 @@ void loop()
     joy_getPressedState(display_cursorActive, display_moveCursor);
     unsigned long lastMovementTime = joy_getLastTimeJoyMovementTime();
 
-    display_handleUserInput(
+    display_updateDisplay(
+        clock_getTime(),
         display_cursorActive, 
         display_moveCursor,
         lastMovementTime);
 
-    clock_updateClock();
-
     led_controlLED(clock_getTime());
 
-    display_updateDisplay(clock_getTime());
 }

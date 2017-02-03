@@ -7,6 +7,28 @@ static volatile int priv_intCounter = 0;             // counts rising edge clock
 static volatile int priv_intCompensator = 0;         // compensates for clock inaccuracy, freq. measured to be: 490.2Hz
 static time_t priv_currTime;
 
+
+
+/**
+* Upcates and compensates clock.
+*
+* NOTE: This function only works if no param changes > 59 ticks between calls.
+*
+*/
+void updateClock()
+{
+    if (clock_incrementSeconds())
+    {
+        if (clock_incrementMinutes())
+        {
+            if (clock_incrementHours())
+            {
+                clock_incrementDay();
+            }
+        }
+    }
+}
+
 /**
  * Init package global variables.
  */
@@ -15,6 +37,8 @@ void clock_init()
     priv_currTime.seconds = 0;
     priv_currTime.minutes = 0;
     priv_currTime.hours = 0;
+    priv_currTime.dayNo = 0;
+    priv_currTime.dayText = weekdays[priv_currTime.dayNo];
 }
 
 
@@ -35,7 +59,7 @@ void clock_interrupt()      // called by interrupt
     {  
         priv_intCompensator++;
     
-        priv_currTime.seconds ++; // Don't update in general function, update here, faster and will work good enough.
+        updateClock();
         priv_intCounter = 0;     // Reset after 1 second is reached
     }
     
@@ -43,75 +67,118 @@ void clock_interrupt()      // called by interrupt
 }
 
 /*
- * General clock update functions.
+ * General clock update functions, seconds.
  */
-void clock_incrementSeconds()
+bool clock_incrementSeconds()
 {
-    // Ok to overflow, we rely on the overall update functionality to compensate
-    // and add 1 to the "more-significant-time" digit before we can increment
-    // two steps. 
-    priv_currTime.seconds++;
+    bool overflow = false;
+    if (priv_currTime.seconds >= 59)
+    {
+        priv_currTime.seconds = 0;
+        overflow = true;
+    }
+    else
+    {
+        priv_currTime.seconds++;
+    }
+    return overflow;
 }
 void clock_decrementSeconds()
 {
-    if (priv_currTime.seconds >= 1)
+    if (priv_currTime.seconds <= 0)
+    {
+        priv_currTime.seconds = 59;
+    }
+    else
     {
         priv_currTime.seconds--;
     }
 }
 
-void clock_incrementMinutes()
+/*
+ * General clock update functions, minutes.
+ */
+bool clock_incrementMinutes()
 {
-    // Ok to overflow, we rely on the overall update functionality to compensate
-    // and add 1 to the "more-significant-time" digit before we can increment
-    // two steps.
-    priv_currTime.minutes++;
+    bool overflow = false;
+    if (priv_currTime.minutes >= 59)
+    {
+        priv_currTime.minutes = 0;
+        overflow = true;
+    }
+    else
+    {
+        priv_currTime.minutes++;
+    }
+    return overflow;
 }
 void clock_decrementMinutes()
 {
-    if (priv_currTime.minutes >= 1)
+    if (priv_currTime.minutes <= 0)
+    {
+        priv_currTime.minutes = 59;
+    }
+    else
     {
         priv_currTime.minutes--;
     }
 }
 
-void clock_incrementHours()
+/*
+ * General clock update functions, hours.
+ */
+bool clock_incrementHours()
 {
-    // Ok to overflow, we rely on the overall update functionality to compensate
-    // and add 1 to the "more-significant-time" digit before we can increment
-    // two steps.
-    priv_currTime.hours++;
+    bool overflow = false;
+    if (priv_currTime.hours >= 23)
+    {
+        priv_currTime.hours = 0;
+        overflow = true;
+    }
+    else
+    {
+        priv_currTime.hours++;
+    }
+    return overflow;
 }
 void clock_decrementHours()
 {
-    if (priv_currTime.hours >= 1)
+    if (priv_currTime.hours <= 0)
+    {
+        priv_currTime.hours = 23;
+    }
+    else
     {
         priv_currTime.hours--;
     }
 }
 
-/**
-* Upcates and compaensates clock.
-*
-* NOTE: This function only works if no param changes > 59 ticks between calls.
-*
-*/
-void clock_updateClock()
+/*
+ * General clock update functions, day.
+ */
+void clock_incrementDay()
 {
-    if (priv_currTime.seconds >= 60)
+    if (priv_currTime.dayNo >= 6)
     {
-        clock_incrementMinutes();
-        priv_currTime.seconds = 0;
+        priv_currTime.dayNo = 0;
     }
-    if(priv_currTime.minutes >= 60)
+    else
     {
-        clock_incrementHours();
-        priv_currTime.minutes = 0;
+        priv_currTime.dayNo++;
     }
-    if(priv_currTime.hours >= 24)
+    priv_currTime.dayText = weekdays[priv_currTime.dayNo];
+}
+void clock_decrementDay()
+{
+    if (priv_currTime.dayNo <= 0)
     {
-        priv_currTime.hours = 0;
+        priv_currTime.dayNo = 6;
     }
+    else
+    {
+        priv_currTime.dayNo--;
+    }
+    priv_currTime.dayText = weekdays[priv_currTime.dayNo];
 }
 
 /**

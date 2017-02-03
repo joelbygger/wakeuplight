@@ -1,9 +1,6 @@
 
 
 
-const int hourPosOnDisplay = 7;
-const int minPosOnDisplay = 10;
-const int secPosOnDisplay = 13;
 const unsigned long cursor_disable_timeout = 6000; // [ms]
 // We seem to need this, otherwise cursor will flicker.
 const unsigned long cursor_update_interval = 100; // [ms]
@@ -24,9 +21,9 @@ void display_init()
 /**
 * Prints stuff to display.
 */
-void printTime(String txt, int hrs, int mins, int secs)
+void printTime(int hrs, int mins, int secs)
 {
-    lcd.print(txt);
+    lcd.print("Time: ");
     if(hrs <= 9)
     {
         lcd.print("0");
@@ -47,11 +44,23 @@ void printTime(String txt, int hrs, int mins, int secs)
 }
 
 /**
+ * Prints current day to display.
+ */
+void printDay(String day)
+{
+    lcd.print("Day: ");
+    lcd.print(day);
+}
+
+/**
  * Returns next cursor position.
  */
-int doMoveCursor(const int currCursorPos)
+cursorPosOnDisplay_t doMoveCursor(cursorPosOnDisplay_t currCursorPos)
 {
-    int result = currCursorPos;
+    cursorPosOnDisplay_t result = currCursorPos;
+
+    // We also clears the display here, to make sure that we will only display what is changed.
+    lcd.clear();
 
     switch(currCursorPos)
     {
@@ -64,6 +73,10 @@ int doMoveCursor(const int currCursorPos)
             result = secPosOnDisplay;
             break;
         case secPosOnDisplay:
+            Serial.println("Cursor set to day");
+            result = dayPosOnDisplay;
+            break;
+        case dayPosOnDisplay:
         default:
             Serial.println("Cursor set to hours");
             // Handle all strange stuff as hour pos.
@@ -74,15 +87,78 @@ int doMoveCursor(const int currCursorPos)
     return result;
 }
 
+void printCursor(bool visibleCursor, cursorPosOnDisplay_t cursorPos)
+{
+    char cursor = visibleCursor ? '*' : ' ';
+    switch (cursorPos)
+    {
+        case hourPosOnDisplay:
+            lcd.setCursor(7, 1);
+            lcd.write(cursor);
+            break;
+        case minPosOnDisplay:
+            lcd.setCursor(10, 1);
+            lcd.write(cursor);
+            break;
+        case secPosOnDisplay:
+            lcd.setCursor(13, 1);
+            lcd.write(cursor);
+            break;
+        case dayPosOnDisplay:
+        default:
+            lcd.setCursor(8, 2);
+            lcd.write(cursor);
+            break;
+    }
+}
+
 /**
- * Updates cursor pos, moves cursor and 
- * deactivates curor if no movement for too long time.
+ * Does actual printing of time, invokes printing of cursor.
  */
-bool updateCursorPos(
-    const bool cursorActive, 
+void printToDisplay(
+        bool cursorActive,
+        cursorPosOnDisplay_t cursorPos,
+        time_t time)
+{
+    if (cursorActive)
+    {
+        // If cursor is active we do not display everyting, or cursor will overwrite stuff.
+        switch (cursorPos)
+        {
+            case hourPosOnDisplay:
+            case minPosOnDisplay:
+            case secPosOnDisplay:
+                lcd.setCursor(0, 0);
+                printTime(time.hours, time.minutes, time.seconds);
+                break;
+            case dayPosOnDisplay:
+            default:
+                lcd.setCursor(0, 1);
+                printDay(time.dayText);
+                break;
+        }
+        printCursor(cursorActive, cursorPos);
+    }
+    else
+    {
+        lcd.setCursor(0, 0);
+        printTime(time.hours, time.minutes, time.seconds);
+        lcd.setCursor(0, 1);
+        printDay(time.dayText);
+    }
+}
+
+/**
+ * Updates cursor pos, prints cursor, moves cursor and 
+ * deactivates curor if no movement for too long time.
+ * And also prints date and time.
+ */
+bool updateDisplay(
+    time_t time,
+    bool cursorActive, 
     bool &moveCursor,
-    int &cursorPos,
-    const unsigned long lastTimeJoyMovement)
+    cursorPosOnDisplay_t &cursorPos,
+    unsigned long lastTimeJoyMovement)
 {
     static bool firstExec = true;
     static unsigned long lastUpdateTime = 0;
@@ -95,21 +171,29 @@ bool updateCursorPos(
     {
         lastUpdateTime = currTime;
         firstExec = false;
-        cursorPos = doMoveCursor(255); // Some strange number to reset position.
+        cursorPos = doMoveCursor(dayPosOnDisplay); // Init to hour pos after first key press.
         moveCursor = false;
+    }
+
+    // Was cursor deactivated due to key presS?
+    if (lastCallCursorWasActive && !cursorStillActive)
+    {
+        printCursor(false, cursorPos); // Here we force-off the cursor indicator.
     }
 
     // Shall cursor be deactivated due to timeout?
     if (cursorStillActive &&
         ((currTime - lastTimeJoyMovement) > cursor_disable_timeout))
     {
+        printCursor(false, cursorPos); // Here we force-off the cursor indocator.
+
         cursorStillActive = false;
     }
 
     // If we become active, set cursor to start pos.
     if (!lastCallCursorWasActive && cursorStillActive)
     {
-        cursorPos = doMoveCursor(255); // Some strange number to reset position.
+        cursorPos = doMoveCursor(dayPosOnDisplay); // Init to hour pos after first key press.
         moveCursor = false;
     }
     lastCallCursorWasActive = cursorStillActive;
@@ -120,14 +204,11 @@ bool updateCursorPos(
         {
             if (moveCursor)
             {
-                lcd.setCursor(cursorPos, 1);
-                lcd.write(' ');
+                printCursor(false, cursorPos); // Here we force-off the cursor.
                 cursorPos = doMoveCursor(cursorPos);
                 moveCursor = false;
             }
 
-            lcd.setCursor(cursorPos, 1);
-            lcd.write('I');
             lastUpdateTime = currTime;
 
             //Serial.print("currTime ");
@@ -137,35 +218,28 @@ bool updateCursorPos(
             //Serial.print(" diff ");
             //Serial.println(currTime - lastTimeJoyMovement);
         }
-        else
-        {
-            //Serial.println("Disable cursor");
-            lcd.setCursor(cursorPos, 1);
-            lcd.write(' ');
-        }
     }
+
+    // Print time and cursor.
+    printToDisplay(
+        cursorStillActive,
+        cursorPos,
+        time);
 
     return cursorStillActive;
 }
 
-/**
-* Updates display.
-*/
-void display_updateDisplay(const time_t time)
-{   
-    lcd.setCursor(0, 0);
-    printTime("Time: ", time.hours, time.minutes, time.seconds);
-}
 
 /*
- * Manages display, time etc. based on user input.
+ * Manages display, time etc. both the standard time update, and based on user input.
  */
-void display_handleUserInput(
+void display_updateDisplay(
+    time_t time,
     bool &cursorActive, 
     bool &moveCursor,
     const unsigned long lastTimeJoyMovement)
 {
-    static int cursorPos = hourPosOnDisplay;
+    static cursorPosOnDisplay_t cursorPos = hourPosOnDisplay;
     unsigned long currTime = millis();
     static unsigned long lastTime_modifedNumbers = 0;
     static bool firstExec = true;
@@ -178,7 +252,8 @@ void display_handleUserInput(
         lastExecCursorActive = false;
     } 
 
-    cursorActive = updateCursorPos(
+    cursorActive = updateDisplay(
+        time,
         cursorActive,
         moveCursor,
         cursorPos,
@@ -200,14 +275,45 @@ void display_handleUserInput(
         switch(cursorPos)
         {
             case hourPosOnDisplay:
-                manualTimeChange(&clock_incrementHours, &clock_decrementHours);
+                if (joystick_xAxisPos())
+                {
+                    clock_incrementHours();
+                }
+                else if (joystick_xAxisNeg())
+                {
+                    clock_decrementHours();
+                }
                 break;
             case minPosOnDisplay:
-                manualTimeChange(&clock_incrementMinutes , &clock_decrementMinutes);
+                if (joystick_xAxisPos())
+                {
+                    clock_incrementMinutes();
+                }
+                else if (joystick_xAxisNeg())
+                {
+                    clock_decrementMinutes();
+                }
                 break;
             case secPosOnDisplay:
-                manualTimeChange(&clock_incrementSeconds, &clock_decrementSeconds);
+                if (joystick_xAxisPos())
+                {
+                    clock_incrementSeconds();
+                }
+                else if (joystick_xAxisNeg())
+                {
+                    clock_decrementSeconds();
+                }
                 break;
+            case dayPosOnDisplay:
+                if (joystick_xAxisPos())
+                {
+                    clock_incrementDay();
+                }
+                else if (joystick_xAxisNeg())
+                {
+                    clock_decrementDay();
+                }
+            break;
             default:
                 // Well, we shouldn't be here.
                 Serial.println("Handle user input has bad info about cursor pos!"); 
