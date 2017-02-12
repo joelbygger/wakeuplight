@@ -58,7 +58,7 @@ void printDay(String day)
 void printAlarmState(bool alarmState)
 {
     lcd.print("Alarm: ");
-    String state = alarmState ? "On" : "Off";
+    String state = alarmState ? "On " : "Off";
     lcd.print(state);
 }
 
@@ -123,7 +123,7 @@ void printCursor(bool visibleCursor, cursorPosOnDisplay_t cursorPos)
             lcd.write(cursor);
             break;
         case alarmActiveOnDisplay:
-            lcd.setCursor(9, 2);
+            lcd.setCursor(10, 2);
             lcd.write(cursor);
             break;
         default:
@@ -156,6 +156,7 @@ void printToDisplay(
             case dayPosOnDisplay:
                 lcd.setCursor(0, 1);
                 printDay(time.dayText);
+                break;
             case alarmActiveOnDisplay:
             default:
                 lcd.setCursor(0, 1);
@@ -201,18 +202,17 @@ bool updateDisplay(
         moveCursor = false;
     }
 
-    // Was cursor deactivated due to key presS?
+    // Was cursor deactivated due to key press?
     if (lastCallCursorWasActive && !cursorStillActive)
     {
-        printCursor(false, cursorPos); // Here we force-off the cursor indicator.
+        lcd.clear(); // Clear display so that we do not accidentally leave any crap behind.
     }
 
     // Shall cursor be deactivated due to timeout?
     if (cursorStillActive &&
         ((currTime - lastTimeJoyMovement) > cursor_disable_timeout))
     {
-        printCursor(false, cursorPos); // Here we force-off the cursor indocator.
-
+        lcd.clear(); // Clear display so that we do not accidentally leave any crap behind.
         cursorStillActive = false;
     }
 
@@ -224,18 +224,21 @@ bool updateDisplay(
     }
     lastCallCursorWasActive = cursorStillActive;
 
+    // Shall we update was is printed to display?
     if((currTime - lastUpdateTime) > cursor_update_interval)
     {
+        // We only update the keep-alive timing and cursor movement if cursor is active.
         if (cursorStillActive)
         {
+            lastUpdateTime = currTime;
+
             if (moveCursor)
             {
-                printCursor(false, cursorPos); // Here we force-off the cursor.
+                lcd.clear(); // Clear display so that we do not accidentally leave any crap behind.
                 cursorPos = doMoveCursor(cursorPos);
                 moveCursor = false;
             }
 
-            lastUpdateTime = currTime;
 
             //Serial.print("currTime ");
             //Serial.print(currTime);

@@ -45,22 +45,6 @@ bool joystick_xAxisNeg()
 }
 
 /**
- * Returns how the time shall be modified, add or remove 1.
- */
-/*void manualTimeChange(bool (*increment)(), void (*decrement)())
-{
-    if (xAxisPos())
-    {
-        // Ignore return value here, if we overflow we don't want to affect other timings.
-        (void)increment();
-    }
-    else if (xAxisNeg())
-    {
-        decrement();
-    }
-}*/
-
-/**
  * Returns true if movement was so big we count is as a movement.
  */
 bool readMovmentCounts(const int last, const int curr)
