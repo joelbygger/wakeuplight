@@ -53,6 +53,16 @@ void printDay(String day)
 }
 
 /**
+ * Prints the alarm state to display.
+ */
+void printAlarmState(bool alarmState)
+{
+    lcd.print("Alarm: ");
+    String state = alarmState ? "On" : "Off";
+    lcd.print(state);
+}
+
+/**
  * Returns next cursor position.
  */
 cursorPosOnDisplay_t doMoveCursor(cursorPosOnDisplay_t currCursorPos)
@@ -77,6 +87,10 @@ cursorPosOnDisplay_t doMoveCursor(cursorPosOnDisplay_t currCursorPos)
             result = dayPosOnDisplay;
             break;
         case dayPosOnDisplay:
+            Serial.println("Cursor set to alarm");
+            result = alarmActiveOnDisplay;
+            break;
+        case alarmActiveOnDisplay:
         default:
             Serial.println("Cursor set to hours");
             // Handle all strange stuff as hour pos.
@@ -105,8 +119,15 @@ void printCursor(bool visibleCursor, cursorPosOnDisplay_t cursorPos)
             lcd.write(cursor);
             break;
         case dayPosOnDisplay:
-        default:
             lcd.setCursor(8, 2);
+            lcd.write(cursor);
+            break;
+        case alarmActiveOnDisplay:
+            lcd.setCursor(9, 2);
+            lcd.write(cursor);
+            break;
+        default:
+            lcd.setCursor(15, 2); // Last position.
             lcd.write(cursor);
             break;
     }
@@ -116,6 +137,7 @@ void printCursor(bool visibleCursor, cursorPosOnDisplay_t cursorPos)
  * Does actual printing of time, invokes printing of cursor.
  */
 void printToDisplay(
+        bool alarmState,
         bool cursorActive,
         cursorPosOnDisplay_t cursorPos,
         time_t time)
@@ -132,9 +154,12 @@ void printToDisplay(
                 printTime(time.hours, time.minutes, time.seconds);
                 break;
             case dayPosOnDisplay:
-            default:
                 lcd.setCursor(0, 1);
                 printDay(time.dayText);
+            case alarmActiveOnDisplay:
+            default:
+                lcd.setCursor(0, 1);
+                printAlarmState(alarmState);
                 break;
         }
         printCursor(cursorActive, cursorPos);
@@ -154,6 +179,7 @@ void printToDisplay(
  * And also prints date and time.
  */
 bool updateDisplay(
+    bool alarmState,
     time_t time,
     bool cursorActive, 
     bool &moveCursor,
@@ -171,7 +197,7 @@ bool updateDisplay(
     {
         lastUpdateTime = currTime;
         firstExec = false;
-        cursorPos = doMoveCursor(dayPosOnDisplay); // Init to hour pos after first key press.
+        cursorPos = doMoveCursor(alarmActiveOnDisplay); // Init to hour pos after first key press.
         moveCursor = false;
     }
 
@@ -193,7 +219,7 @@ bool updateDisplay(
     // If we become active, set cursor to start pos.
     if (!lastCallCursorWasActive && cursorStillActive)
     {
-        cursorPos = doMoveCursor(dayPosOnDisplay); // Init to hour pos after first key press.
+        cursorPos = doMoveCursor(alarmActiveOnDisplay); // Init to hour pos after first key press.
         moveCursor = false;
     }
     lastCallCursorWasActive = cursorStillActive;
@@ -222,6 +248,7 @@ bool updateDisplay(
 
     // Print time and cursor.
     printToDisplay(
+        alarmState,
         cursorStillActive,
         cursorPos,
         time);
@@ -234,6 +261,7 @@ bool updateDisplay(
  * Manages display, time etc. both the standard time update, and based on user input.
  */
 void display_updateDisplay(
+    bool alarmState,
     time_t time,
     bool &cursorActive, 
     bool &moveCursor,
@@ -253,6 +281,7 @@ void display_updateDisplay(
     } 
 
     cursorActive = updateDisplay(
+        alarmState,
         time,
         cursorActive,
         moveCursor,
@@ -313,7 +342,13 @@ void display_updateDisplay(
                 {
                     clock_decrementDay();
                 }
-            break;
+                break;
+            case alarmActiveOnDisplay:
+                if (joystick_xAxisPos() || joystick_xAxisNeg())
+                {
+                    led_alarmEnableToggle();
+                }
+                break;
             default:
                 // Well, we shouldn't be here.
                 Serial.println("Handle user input has bad info about cursor pos!"); 

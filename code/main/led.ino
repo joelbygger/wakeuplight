@@ -20,6 +20,24 @@ const unsigned int ledLinearity[31] = {
 };
 const uint32_t LED_FADE_TIME = sizeof(ledLinearity)/sizeof(ledLinearity[0]);
 
+// True if Alarm is active, i.e. if LED is turned on at alarm time.
+bool priv_alarmEnabled = false;
+
+/**
+ * Called if alarm enable state shall be toggled.
+ */
+void led_alarmEnableToggle()
+{
+    priv_alarmEnabled = !priv_alarmEnabled;
+}
+
+/**
+ * Returns current alarm enable state.
+ */
+bool led_getAlarmEnable()
+{
+    return priv_alarmEnabled;
+}
 
 
 /**
@@ -34,7 +52,8 @@ void led_controlLED(const time_t time)
     switch (alarmState)
     {
         case alarmState_inactive:
-            if ((time.hours == ALARM_START_TIME_HOUR) &&
+            if (priv_alarmEnabled &&
+                (time.hours == ALARM_START_TIME_HOUR) &&
                 (time.minutes == ALARM_START_TIME_MIN) &&
                 time.dayNo <= 4) // Only alarm on weekdays.
             {

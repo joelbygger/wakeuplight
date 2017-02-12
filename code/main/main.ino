@@ -21,7 +21,8 @@ typedef enum
     hourPosOnDisplay,
     minPosOnDisplay,
     secPosOnDisplay,
-    dayPosOnDisplay
+    dayPosOnDisplay,
+    alarmActiveOnDisplay
 }cursorPosOnDisplay_t;
 
 // Clock.
@@ -95,6 +96,7 @@ void loop()
     unsigned long lastMovementTime = joy_getLastTimeJoyMovementTime();
 
     display_updateDisplay(
+        led_getAlarmEnable(),
         clock_getTime(),
         display_cursorActive, 
         display_moveCursor,
