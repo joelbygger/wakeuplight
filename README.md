@@ -2,9 +2,10 @@
 __Working title:__ _Morning has broken_  
 __Production title:__ _Waking on sunshine_
 
-Arduino project, LCD for time, joystick for setting time, PWM output (LED).  
-As of today, Arduino IDE does not like Pro Micro, patch instructions in folder arduino_addon.  
-Starts PWM LED (linear to the eye!) at a hard coded time. 30 minutes, then shuts off.
+Arduino project, using LCD to display time, joystick for setting time, PWM output controls LED.
+Starts PWM LED (linear to the eye!) at a hard coded time. Fadus up for 30 minutes, then stays on at max for 20 before shutting off.
+Alarm only active on weekdays. Alarm can be activated and deactivated, default at POR is inactive.
+Regarding development, as of today, Arduino IDE does not like Pro Micro, patch instructions in folder arduino_addon.
 
 # HW
 - Arduino Pro Micro
@@ -55,7 +56,6 @@ Vreg_out - 5V
 Vreg_out - power_led - ohm - GND  
 
 # TODO
-- No alarm on weekends.
 - LED on until it is turned off or timeout.
 - If LED not turned off, smal motor pops up and starts strobing.
 - Configurable alarm time.
