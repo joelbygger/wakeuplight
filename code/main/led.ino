@@ -95,7 +95,7 @@ void led_controlLED(const time_t time)
                 else
                 {
                     Serial.print("Alarm update at time: ");
-                    Serial.print(time.seconds);
+                    Serial.print(time.minutes);
                     Serial.print(" new alarm minute: ");
                     Serial.print(alarmMinute);
                     Serial.print("\n");
@@ -105,7 +105,6 @@ void led_controlLED(const time_t time)
                     analogWrite(ledPin, pwmVal_);
 
                     lastAlarmMinute = time.minutes;
-                    lastAlarmMinute = time.seconds;
                     alarmMinute++;
                 }
             }
