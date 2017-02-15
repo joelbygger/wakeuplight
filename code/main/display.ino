@@ -75,24 +75,24 @@ cursorPosOnDisplay_t doMoveCursor(cursorPosOnDisplay_t currCursorPos)
     switch(currCursorPos)
     {
         case hourPosOnDisplay:
-            Serial.println("Cursor set to mins");
+            //Serial.println("Cursor set to mins");
             result = minPosOnDisplay;
             break;
         case minPosOnDisplay:
-            Serial.println("Cursor set to secs");
+            //Serial.println("Cursor set to secs");
             result = secPosOnDisplay;
             break;
         case secPosOnDisplay:
-            Serial.println("Cursor set to day");
+            //Serial.println("Cursor set to day");
             result = dayPosOnDisplay;
             break;
         case dayPosOnDisplay:
-            Serial.println("Cursor set to alarm");
+            //Serial.println("Cursor set to alarm");
             result = alarmActiveOnDisplay;
             break;
         case alarmActiveOnDisplay:
         default:
-            Serial.println("Cursor set to hours");
+            //Serial.println("Cursor set to hours");
             // Handle all strange stuff as hour pos.
             result = hourPosOnDisplay;
             break;
